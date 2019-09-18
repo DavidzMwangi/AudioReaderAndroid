@@ -44,6 +44,9 @@ public class MainActivity extends AppCompatActivity {
 //                getAllSongsFromSDCARD();
 
 
+
+
+
             }
             @Override public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {/* ... */}
         }).withErrorListener(new PermissionRequestErrorListener() {

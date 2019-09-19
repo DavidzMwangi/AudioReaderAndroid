@@ -13,6 +13,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
@@ -90,9 +91,9 @@ public class MainActivity extends AppCompatActivity {
                             File myFile = new File(uriString);
                             //    String path = myFile.getAbsolutePath();
 
-                            String path2 = getAudioPath(uri);
+                            String finalAudioPath = getAudioPath(uri);
 
-                            File f = new File(path2);
+                            File f = new File(finalAudioPath);
                             String displayName =f.getName();
                             long fileSizeInBytes = f.length();
                             long fileSizeInKB = fileSizeInBytes / 1024;
@@ -104,10 +105,16 @@ public class MainActivity extends AppCompatActivity {
                                 Toast.makeText(getApplicationContext(),"Can't Upload, sorry file size is large. Maximum file size is 20MB",Toast.LENGTH_SHORT).show();
                             } else {
 
-                                Toast.makeText(getApplicationContext(),path2,Toast.LENGTH_SHORT).show();
-                                audioFileName.setText(displayName);
-//                                profilePicUrl = path2;
-//                                isPicSelect = true;
+                                //determine the audio extension type
+                                if (finalAudioPath.substring(finalAudioPath.lastIndexOf(".")) == ".wav" ) {
+//                                Toast.makeText(getApplicationContext(),path2,Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(getApplicationContext(), getMimeType(finalAudioPath), Toast.LENGTH_SHORT).show();
+                                    audioFileName.setText(displayName);
+                                }else{
+
+                                    Toast.makeText(getApplicationContext(),"The selected audio is not of type WAV, ensure the audio is of WAV type ",Toast.LENGTH_LONG).show();
+                                }
+
                             }
                         } catch (Exception e) {
                             //handle exception
@@ -128,5 +135,15 @@ public class MainActivity extends AppCompatActivity {
         int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
         cursor.moveToFirst();
         return cursor.getString(column_index);
+    }
+
+    public static String getMimeType(String path) {
+
+        String extention = path.substring(path.lastIndexOf(".") );
+
+        return extention;
+//        String mimeTypeMap = MimeTypeMap.getFileExtensionFromUrl(extention);
+//        String mimeType = MimeTypeMap.getSingleton() .getMimeTypeFromExtension(mimeTypeMap);
+//        return mimeType;
     }
 }

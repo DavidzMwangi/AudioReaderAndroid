@@ -3,13 +3,17 @@ package ke.co.davidwanjohi.audioreader;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.appcompat.widget.AppCompatTextView;
+import androidx.loader.content.CursorLoader;
 
 import android.Manifest;
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.karumi.dexter.Dexter;
 import com.karumi.dexter.MultiplePermissionsReport;
@@ -19,12 +23,14 @@ import com.karumi.dexter.listener.PermissionRequest;
 import com.karumi.dexter.listener.PermissionRequestErrorListener;
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import java.io.File;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
     AppCompatTextView audioFileName;
     AppCompatButton audioFileBtn;
+    String selectedImagePath;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,49 +62,71 @@ public class MainActivity extends AppCompatActivity {
                 }).check();
 
 
+        audioFileBtn.setOnClickListener(l->{
+            Intent videoIntent = new Intent(
+                    Intent.ACTION_PICK,
+                    android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI);
+            startActivityForResult(Intent.createChooser(videoIntent, "Select Audio"), 1);
+
+        });
+
+
+
 
     }
 
-    public void getAllSongsFromSDCARD()
-    {
-        String[] STAR = { "*" };  //it is projection you can modify it according to your need
-        String sortOrder = MediaStore.Audio.Media.TITLE + " ASC";
-        String[] selectionArgs = null;
-        Uri allsongsuri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        String selection = MediaStore.Audio.Media.IS_MUSIC + " != 0";  // check for music files
+    @Override
+    protected void onActivityResult(int requestCode,int resultCode,Intent data){
 
-     Cursor cursor = getContentResolver().query(allsongsuri,STAR,selection,selectionArgs,sortOrder );
+        if(requestCode == 1){
 
-        if (cursor != null) {
-            if (cursor.moveToFirst()) {
-                do {
-                    String song_name = cursor
-                            .getString(cursor
-                                    .getColumnIndex(MediaStore.Audio.Media.DISPLAY_NAME));
-                    int song_id = cursor.getInt(cursor
-                            .getColumnIndex(MediaStore.Audio.Media._ID));
-
-                    String fullpath = cursor.getString(cursor
-                            .getColumnIndex(MediaStore.Audio.Media.DATA));
-
-
-                    String album_name = cursor.getString(cursor
-                            .getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                    int album_id = cursor.getInt(cursor
-                            .getColumnIndex(MediaStore.Audio.Media.ALBUM_ID));
-
-                    String artist_name = cursor.getString(cursor
-                            .getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                    int artist_id = cursor.getInt(cursor
-                            .getColumnIndex(MediaStore.Audio.Media.ARTIST_ID));
+            if(resultCode == RESULT_OK){
 
 
 
-                } while (cursor.moveToNext());
+                        Uri uri = data.getData();
+                        try {
+                            String uriString = uri.toString();
+                            File myFile = new File(uriString);
+                            //    String path = myFile.getAbsolutePath();
+
+                            String path2 = getAudioPath(uri);
+
+                            File f = new File(path2);
+                            String displayName =f.getName();
+                            long fileSizeInBytes = f.length();
+                            long fileSizeInKB = fileSizeInBytes / 1024;
+                            long fileSizeInMB = fileSizeInKB / 1024;
+
+                            //ensure the file is not more than 20 mb
+                            if (fileSizeInMB > 20) {
+
+                                Toast.makeText(getApplicationContext(),"Can't Upload, sorry file size is large. Maximum file size is 20MB",Toast.LENGTH_SHORT).show();
+                            } else {
+
+                                Toast.makeText(getApplicationContext(),path2,Toast.LENGTH_SHORT).show();
+                                audioFileName.setText(displayName);
+//                                profilePicUrl = path2;
+//                                isPicSelect = true;
+                            }
+                        } catch (Exception e) {
+                            //handle exception
+                            Toast.makeText(getApplicationContext(), "Unable to process,try again", Toast.LENGTH_SHORT).show();
+                        }
+                        //   String path1 = uri.getPath();
+
 
             }
-            cursor.close();
         }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
+    private String getAudioPath(Uri uri) {
+        String[] data = {MediaStore.Audio.Media.DATA};
+        CursorLoader loader = new CursorLoader(getApplicationContext(), uri, data, null, null, null);
+        Cursor cursor = loader.loadInBackground();
+        int column_index = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+        cursor.moveToFirst();
+        return cursor.getString(column_index);
+    }
 }

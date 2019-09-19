@@ -102,11 +102,12 @@ public class MainActivity extends AppCompatActivity {
                             //ensure the file is not more than 20 mb
                             if (fileSizeInMB > 20) {
 
-                                Toast.makeText(getApplicationContext(),"Can't Upload, sorry file size is large. Maximum file size is 20MB",Toast.LENGTH_SHORT).show();
                             } else {
 
+                                Toast.makeText(getApplicationContext(), finalAudioPath.substring(finalAudioPath.lastIndexOf(".")), Toast.LENGTH_SHORT).show();
+
                                 //determine the audio extension type
-                                if (finalAudioPath.substring(finalAudioPath.lastIndexOf(".")) == ".wav" ) {
+                                if (finalAudioPath.substring(finalAudioPath.lastIndexOf(".")).equals(".wav")) {
 //                                Toast.makeText(getApplicationContext(),path2,Toast.LENGTH_SHORT).show();
                                     Toast.makeText(getApplicationContext(), getMimeType(finalAudioPath), Toast.LENGTH_SHORT).show();
                                     audioFileName.setText(displayName);
